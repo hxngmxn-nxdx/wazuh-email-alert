@@ -36,7 +36,8 @@ wazuh-email-alert/
 ├── README.md
 ├── wazuh_html_mailer.py
 ├── scripts/
-│   └── custom-email-html
+│   ├── custom-email-html
+│   └── sendmail-shim
 └── templates/
     └── wazuh_alert_template.html
 ```
@@ -195,66 +196,21 @@ cp ./wazuh_html_mailer.py \
 cp ./scripts/custom-email-html \
   /caminho/para/wazuh-docker/single-node/config/custom-integrations/custom-email-html
 
+cp ./scripts/sendmail-shim \
+  /caminho/para/wazuh-docker/single-node/config/custom-integrations/sendmail-shim
+
 cp ./templates/wazuh_alert_template.html \
   /caminho/para/wazuh-docker/single-node/config/custom-integrations/templates/wazuh_alert_template.html
 ```
 
-### 2. Criar o sendmail-shim
+### 2. Posicionar o sendmail-shim
 
 Como o container do Wazuh Manager normalmente não possui `/usr/sbin/sendmail`, use um shim para encaminhar a mensagem para o Postfix do host.
 
-Crie o arquivo:
+Garanta que o arquivo esteja neste caminho no host:
 
 ```bash
-nano /caminho/para/wazuh-docker/single-node/config/custom-integrations/sendmail-shim
-```
-
-Conteúdo:
-
-```python
-#!/usr/bin/env python3
-import os
-import sys
-import smtplib
-from email.parser import BytesParser
-from email.policy import default
-
-SMTP_HOST = os.environ.get("WAZUH_SMTP_HOST", "host.docker.internal")
-SMTP_PORT = int(os.environ.get("WAZUH_SMTP_PORT", "25"))
-
-raw = sys.stdin.buffer.read()
-
-if not raw.strip():
-    print("sendmail-shim: empty message received", file=sys.stderr)
-    sys.exit(1)
-
-msg = BytesParser(policy=default).parsebytes(raw)
-
-sender = msg.get("From")
-recipients = []
-
-for header in ("To", "Cc", "Bcc"):
-    value = msg.get(header)
-    if value:
-        recipients.extend([addr.strip() for addr in value.split(",") if addr.strip()])
-
-if "Bcc" in msg:
-    del msg["Bcc"]
-
-if not sender:
-    print("sendmail-shim: missing From header", file=sys.stderr)
-    sys.exit(1)
-
-if not recipients:
-    print("sendmail-shim: missing recipients", file=sys.stderr)
-    sys.exit(1)
-
-try:
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20) as smtp:
-        smtp.send_message(msg, from_addr=sender, to_addrs=recipients)
-except Exception as e:
-    print(f"sendmail-shim: failed to send via {SMTP_HOST}:{SMTP_PORT}: {e}", file=sys.stderr)
-    sys.exit(1)
+/caminho/para/wazuh-docker/single-node/config/custom-integrations/sendmail-shim
 ```
 
 Permissão:
@@ -363,7 +319,7 @@ sudo docker compose restart wazuh.manager
 
 ## Ajustando destinatário, remetente e assunto
 
-A forma mais limpa é passar as variáveis pelo `docker-compose.yml`:
+Uma das formas é passar as variáveis pelo `docker-compose.yml`:
 
 ```yaml
 environment:

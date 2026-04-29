@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+import os
+import smtplib
+import sys
+from email.parser import BytesParser
+from email.policy import default
+
+SMTP_HOST = os.environ.get("WAZUH_SMTP_HOST", "host.docker.internal")
+SMTP_PORT = int(os.environ.get("WAZUH_SMTP_PORT", "25"))
+
+raw = sys.stdin.buffer.read()
+
+if not raw.strip():
+    print("sendmail-shim: empty message received", file=sys.stderr)
+    sys.exit(1)
+
+msg = BytesParser(policy=default).parsebytes(raw)
+
+sender = msg.get("From")
+recipients = []
+
+for header in ("To", "Cc", "Bcc"):
+    value = msg.get(header)
+    if value:
+        recipients.extend([addr.strip() for addr in value.split(",") if addr.strip()])
+
+if "Bcc" in msg:
+    del msg["Bcc"]
+
+if not sender:
+    print("sendmail-shim: missing From header", file=sys.stderr)
+    sys.exit(1)
+
+if not recipients:
+    print("sendmail-shim: missing recipients", file=sys.stderr)
+    sys.exit(1)
+
+try:
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20) as smtp:
+        smtp.send_message(msg, from_addr=sender, to_addrs=recipients)
+except Exception as e:
+    print(f"sendmail-shim: failed to send via {SMTP_HOST}:{SMTP_PORT}: {e}", file=sys.stderr)
+    sys.exit(1)
