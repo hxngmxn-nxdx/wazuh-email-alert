@@ -36,6 +36,8 @@ volumes:
   - ./config/custom-integrations/templates/wazuh_alert_template.html:/var/ossec/templates/wazuh_alert_template.html:ro
 ```
 
+Opcao alternativa: voce pode deixar remetente/destinatario hardcoded no proprio `scripts/custom-email-html` (campos `TO_ADDR`, `FROM_ADDR` e `SUBJECT_PREFIX`) e nao definir `WAZUH_MAIL_*` no Compose. Mesmo nesse modelo, mantenha os scripts/template persistentes no host e montados por bind mount.
+
 3. No `ossec.conf` do manager, desative e-mail nativo e mantenha a integracao customizada:
 
 ```xml
