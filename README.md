@@ -18,21 +18,31 @@ No Postfix, você precisa configurar o remetente e a autenticação SMTP da cont
 - `templates/wazuh_alert_template.html`
 - `scripts/custom-email-html`
 
-## Integração rápida no Wazuh Manager
+## Integração rápida no Wazuh Manager (Docker)
 
-1. Instale os 3 arquivos nos caminhos esperados pelo wrapper:
+1. Deixe os arquivos persistentes no host (exemplo: `./config/custom-integrations/`), e nao edite esses arquivos dentro do container.
 
-```bash
-sudo install -m 750 scripts/custom-email-html /var/ossec/integrations/custom-email-html
-sudo install -m 750 wazuh_html_mailer.py /var/ossec/wazuh_html_mailer.py
-sudo mkdir -p /var/ossec/templates
-sudo install -m 640 templates/wazuh_alert_template.html /var/ossec/templates/wazuh_alert_template.html
-sudo chown root:wazuh /var/ossec/integrations/custom-email-html /var/ossec/wazuh_html_mailer.py /var/ossec/templates/wazuh_alert_template.html
+2. No `docker-compose.yml`, monte os arquivos no `wazuh.manager` e defina as variaveis no proprio Compose (nao via `export` dentro do container):
+
+```yaml
+environment:
+  - WAZUH_MAIL_TO=soc@empresa.com
+  - WAZUH_MAIL_FROM=wazuh@empresa.com
+  - WAZUH_MAIL_SUBJECT_PREFIX=Wazuh Security Alert
+
+volumes:
+  - ./config/custom-integrations/custom-email-html:/var/ossec/integrations/custom-email-html:ro
+  - ./config/custom-integrations/wazuh_html_mailer.py:/var/ossec/wazuh_html_mailer.py:ro
+  - ./config/custom-integrations/templates/wazuh_alert_template.html:/var/ossec/templates/wazuh_alert_template.html:ro
 ```
 
-2. Configure o `ossec.conf`:
+3. No `ossec.conf` do manager, desative e-mail nativo e mantenha a integracao customizada:
 
 ```xml
+<global>
+  <email_notification>no</email_notification>
+</global>
+
 <integration>
   <name>custom-email-html</name>
   <alert_format>json</alert_format>
@@ -40,28 +50,13 @@ sudo chown root:wazuh /var/ossec/integrations/custom-email-html /var/ossec/wazuh
 </integration>
 ```
 
-3. Defina remetente/destinatário no serviço do manager:
+4. Recrie o container do manager para aplicar:
 
 ```bash
-sudo systemctl edit wazuh-manager
+docker compose up -d --force-recreate wazuh.manager
 ```
 
-```ini
-[Service]
-Environment="WAZUH_MAIL_TO=soc@empresa.com"
-Environment="WAZUH_MAIL_FROM=wazuh@empresa.com"
-Environment="WAZUH_MAIL_SUBJECT_PREFIX=Wazuh Security Alert"
-```
-
-4. Reinicie serviços:
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl restart wazuh-manager
-sudo systemctl restart postfix
-```
-
-`postfix` só precisa ser reiniciado onde ele estiver rodando.
+`postfix` deve ser reiniciado apenas no host/servico onde ele estiver rodando.
 
 ## Teste rápido (sem envio)
 
