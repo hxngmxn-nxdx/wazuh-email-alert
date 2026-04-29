@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{SUBJECT}}</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background: #ffffff;
+        font-family: "Segoe UI", Arial, sans-serif;
+      }
+      .outer {
+        width: 100%;
+        background: #ffffff;
+        padding: 28px 12px;
+      }
+      .container {
+        width: 680px;
+        max-width: 680px;
+        background: #f3f4f6;
+        border-collapse: separate;
+        border-spacing: 0;
+        border: 1px solid #33415c;
+      }
+      .header {
+        background: #001233;
+        color: #f9fafb;
+        padding: 20px 24px;
+        border-bottom: 1px solid #023e7d;
+      }
+      .title {
+        margin: 0;
+        font-size: 28px;
+        line-height: 1.25;
+        color: #f8fbff;
+      }
+      .subtitle {
+        margin-top: 12px;
+        padding-top: 10px;
+        border-top: 1px solid #ffffff;
+        color: #dbeafe;
+        font-size: 13px;
+      }
+      .content {
+        padding: 24px 28px;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #c8d4e8;
+      }
+      .card-inner {
+        padding: 18px 20px;
+      }
+      .badge {
+        display: inline-block;
+        font-size: 12px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 6px 10px;
+        font-weight: 700;
+        color: {{LEVEL_BADGE_TEXT}};
+        background: {{LEVEL_BADGE_BG}};
+      }
+      .rule-description {
+        margin: 14px 0 0;
+        font-size: 21px;
+        line-height: 1.35;
+        color: #0f172a;
+        font-weight: 700;
+      }
+      .meta {
+        margin-top: 12px;
+        font-size: 13px;
+        color: #475569;
+      }
+      .section-title {
+        margin: 0;
+        font-size: 15px;
+        color: #001845;
+        font-weight: 700;
+      }
+      .spacer {
+        height: 18px;
+        line-height: 18px;
+        font-size: 0;
+      }
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        background: #ffffff;
+        border: 1px solid #c8d4e8;
+      }
+      .data-table td {
+        font-size: 13px;
+        color: #0f172a;
+        padding: 8px 10px;
+        border-bottom: 1px solid #dde5f2;
+        vertical-align: top;
+      }
+      .data-table tr:last-child td {
+        border-bottom: none;
+      }
+      .label-cell {
+        width: 34%;
+        color: #1e3a5f;
+        background: #edf4ff;
+        font-weight: 600;
+      }
+      .mono {
+        font-family: Consolas, "Courier New", monospace;
+        font-size: 12px;
+      }
+      .pre-box {
+        margin-top: 10px;
+        border: 1px solid #33415c;
+        background: #001845;
+        color: #e2e8f0;
+        padding: 14px;
+        font-size: 12px;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .footer {
+        padding: 16px 28px 26px;
+        color: #44536b;
+        font-size: 12px;
+      }
+      @media only screen and (max-width: 720px) {
+        .container {
+          width: 100% !important;
+          max-width: 100% !important;
+        }
+        .header,
+        .content,
+        .footer {
+          padding-left: 16px !important;
+          padding-right: 16px !important;
+        }
+        .title {
+          font-size: 24px !important;
+        }
+        .subtitle {
+          font-size: 12px !important;
+          line-height: 1.45 !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <table role="presentation" class="outer" cellpadding="0" cellspacing="0">
+      <tr>
+        <td align="center">
+          <table role="presentation" class="container" cellpadding="0" cellspacing="0">
+            <tr>
+              <td class="header">
+                <h1 class="title">Wazuh Security Alert</h1>
+                <div class="subtitle">{{TIMESTAMP}} | {{AGENT_NAME}} | {{LOCATION}}</div>
+              </td>
+            </tr>
+            <tr>
+              <td class="content">
+                <table role="presentation" class="card" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td class="card-inner">
+                      <span class="badge">Level {{LEVEL}} - {{SEVERITY_LABEL}}</span>
+                      <p class="rule-description">{{RULE_DESCRIPTION}}</p>
+                      <div class="meta">Rule ID: {{RULE_ID}}</div>
+                    </td>
+                  </tr>
+                </table>
+
+                <div class="spacer">&nbsp;</div>
+                <p class="section-title">Alert Context</p>
+                <table role="presentation" class="data-table" cellpadding="0" cellspacing="0">
+                  {{SUMMARY_ROWS}}
+                </table>
+
+                <div class="spacer">&nbsp;</div>
+                <p class="section-title">System Fields</p>
+                <table role="presentation" class="data-table" cellpadding="0" cellspacing="0">
+                  {{SYSTEM_ROWS}}
+                </table>
+
+                <div class="spacer">&nbsp;</div>
+                <p class="section-title">Event Data</p>
+                <table role="presentation" class="data-table" cellpadding="0" cellspacing="0">
+                  {{EVENT_ROWS}}
+                </table>
+
+                <div class="spacer">&nbsp;</div>
+                <p class="section-title">Original Event Message</p>
+                <div class="pre-box mono">{{RAW_MESSAGE}}</div>
+
+                <div class="spacer">&nbsp;</div>
+                <p class="section-title">Raw JSON (truncated)</p>
+                <div class="pre-box mono">{{RAW_JSON}}</div>
+              </td>
+            </tr>
+            <tr>
+              <td class="footer">
+                Generated by wazuh-email-alert template pipeline.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
